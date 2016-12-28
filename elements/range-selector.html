@@ -1,0 +1,277 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="range-selector" attributes="ticks">
+  <template>
+    <style>
+      /* local styles go here */
+      :host {
+        display: inline-block;
+        height: 40px;
+        position: relative;
+        width: 500px;
+      }
+
+      .label-track {
+        height: 20px;
+      }
+
+      .label-title {
+        display: inline-block;
+        position: absolute;
+      }
+
+      .range-selector-track {
+        height: 40px;
+        position: relative;
+      }
+
+      .track {
+        background-color: red;
+        display: inline-block;
+        height: 6px;
+        position: absolute;
+        top: 17px;
+        left: 20px;
+        right: 20px;
+      }
+
+      .track.thumbs {
+        background-color: transparent;
+        display: inline-block;
+        height: 40px;
+        position: absolute;
+        top: 0px;
+        left: 20px;
+        right: 20px;
+      }
+
+      .thumb {
+        border-radius: 50%;
+        cursor: pointer;
+        display: inline-block;
+        height: 40px;
+        margin-left: -20px;
+        position: absolute;
+        width: 40px;
+        z-index: 100;
+      }
+
+      .tick {
+        background: black;
+        border-radius: 50%;
+        display: inline-block;
+        height: 20px;
+        margin-left: -10px;
+        margin-top: -7px;
+        position: absolute;
+        width: 20px;
+        z-index: 200;
+      }
+
+      #thumb1 {
+        background-color: green;
+      }
+
+      #thumb2 {
+        background-color: blue;
+      }
+    </style>
+    <!-- local DOM goes here -->
+
+    <div id="label-track" class="label-track">
+      <span id="label1" class="label-title">{{this.label1}}</span>
+      <span id="label2" class="label-title">{{this.label2}}</span>
+    </div>
+    <div id="range-selector-track" class="range-selector-track">
+      <div id="track" class="track"></div>
+      <div id="ticks" class="track">
+        <template is="dom-repeat" items="{{ticks}}">
+          <span id="{{item.id}}" data-value$="{{item.value}}" data-text$="{{item.text}}" class$="tick tick-{{item.value}}" style="left:{{item.left}}%"></span>
+        </template>
+      </div>
+      <div id="thumbs" class="track thumbs">
+        <span id="thumb1" class="thumb" data-label="label1"></span>
+        <span id="thumb2" class="thumb" data-label="label2"></span>
+      </div>
+    </div>
+  </template>
+  <script>
+
+    Polymer({
+      is: 'range-selector',
+      created: function() {
+        this.vars = {};
+      },
+      properties: {
+        ticks: Array,
+        thumb1: String,
+        thumb2: String
+      },
+      getTickBounds: function (ticks) {
+        var i = 0,
+            len = ticks.length - 1,
+            tickBounds = [];
+
+        for (i = 0; i < len; i++) {
+          tickBounds.push(ticks[i].getBoundingClientRect());
+        }
+
+        return tickBounds;
+      },
+      getSnapPoints: function (tickBounds) {
+        var i = 0,
+            len = tickBounds.length - 1,
+            tickSnapPoints = [];
+
+        for (i = 0; i < len; i++) {
+          tickSnapPoints.push((tickBounds[i].left + tickBounds[i + 1].left) / 2);
+        }
+
+        return tickSnapPoints;
+      },
+      extractPosition: function (target) {
+        var left = parseInt(target.style.left);
+
+        return left == null || isNaN(left) ? 0 : left;
+      },
+      onMouseDown: function (e) {
+        
+        // IE uses srcElement, others use target
+        var target = e.target != null ? e.target : e.srcElement;
+
+        // for IE, left click == 1
+        // for Firefox, left click == 0
+        if ((e.button == 1 && window.event != null || e.button == 0)) {
+          // grab the mouse position
+          this.vars._startX = e.clientX;
+          this.vars._startY = e.clientY;
+
+          // grab the track client bounds
+          this.vars.trackBounds = this.$.track.getBoundingClientRect();
+
+          // grab the tick bounds
+          this.vars.tickBounds = this.getTickBounds(this.$.ticks.children);
+          this.vars.tickSnapPoints = this.getSnapPoints(this.vars.tickBounds);
+          
+          // grab the clicked element's position
+          this.vars._offsetX = this.extractPosition(target);
+          this.vars._offsetY = this.extractPosition(target);
+          
+          // bring the clicked element to the front while it is being dragged
+          this.vars._oldZIndex = target.style.zIndex;
+          target.style.zIndex = 10000;
+          
+          // we need to access the element in OnMouseMove
+          this.vars._dragElement = target;
+
+          // tell our code to start moving the element with the mouse
+          document.onmousemove = this.onMouseMove.bind(this);
+          
+          // cancel out any text selections
+          document.body.focus();
+
+          // prevent text selection in IE
+          document.onselectstart = function () { return false; };
+          // prevent IE from trying to drag an image
+          target.ondragstart = function() { return false; };
+          
+          // prevent text selection (except IE)
+          return false;
+        }
+      },
+      onMouseMove: function (e) {
+        var left = (this.vars._offsetX + e.clientX - this.vars._startX),
+            activeTick;
+
+        left = (left < 10) ? 0 : left;
+        left = (left > this.vars.trackBounds.width) ? this.vars.trackBounds.width : left;
+
+        activeTick = this.getActiveTick((this.vars._offsetX + e.clientX - this.vars._startX));
+        this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[activeTick].text;
+        this.moveThumb(left);
+      },
+      onMouseUp: function (e) {
+        if (this.vars._dragElement != null) {
+
+          var activeTick = this.getActiveTick((this.vars._offsetX + e.clientX - this.vars._startX));
+
+          this.moveThumb(this.vars.tickBounds[activeTick].left - 18);
+          this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[activeTick].text;
+
+          // we're done with these events until the next OnMouseDown
+          this.vars._dragElement.style.zIndex = this.vars._oldZIndex;
+          this.vars._dragElement.ondragstart = null;
+          // this is how we know we're not dragging      
+          this.vars._dragElement = null;
+          document.onmousemove = null;
+          document.onselectstart = null;
+        }
+      },
+      moveThumb: function (left) {
+        this.vars._dragElement.style.left = left + 'px';
+        this.$[this.vars._dragElement.dataset.label].style.left = left + 'px';
+      },
+      getActiveTick: function (left) {
+        var len = this.vars.tickSnapPoints.length,
+            i,
+            snp1,
+            snp2,
+            activeTick;
+
+        for (i = 0; i < len; i++) {
+          if ( i > 0) {
+            snp1 = this.vars.tickSnapPoints[i - 1];
+          } else {
+            snp1 = 0;
+          }
+
+          snp2 = this.vars.tickSnapPoints[i];
+
+          if (left > snp1 && left < snp2) {
+            activeTick = i;
+            break;
+          } else if (i === len - 1) {
+            activeTick = i + 1;
+          }
+        }
+
+        return i;
+      },
+      attached: function () {
+        var thumb1Selection = parseInt(this.thumb1),
+            thumb2Selection = parseInt(this.thumb2);
+
+        // grab the tick bounds
+        this.vars.tickBounds = this.getTickBounds(this.$.ticks.children);
+        this.vars.tickSnapPoints = this.getSnapPoints(this.vars.tickBounds);
+
+        thumb1Selection = (thumb1Selection == null || isNaN(thumb1Selection) ? 0 : thumb1Selection);
+        thumb2Selection = (thumb2Selection == null || isNaN(thumb2Selection) ? (this.vars.tickBounds.length - 1) : thumb2Selection);
+
+        this.vars._dragElement = this.$.thumb1;
+        this.moveThumb(this.vars.tickBounds[thumb1Selection].left - 18);
+        this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb1Selection].text;
+        this.vars._dragElement = this.$.thumb2;
+        this.moveThumb(this.vars.tickBounds[thumb2Selection].left - 18);
+        this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb2Selection].text;
+      },
+      ready: function () {
+        var tickCount = this.ticks.length - 1;
+        this.ticks = this.ticks.map(function (tick, index) {
+          return {
+            id: 'tick' + index,
+            value: tick.value,
+            text: tick.text,
+            left: (index / tickCount) * 100
+          };
+        });
+
+        this.$.thumb1.addEventListener('mousedown', this.onMouseDown.bind(this));
+        this.$.thumb1.addEventListener('mouseup', this.onMouseUp.bind(this));
+        this.$.thumb2.addEventListener('mousedown', this.onMouseDown.bind(this));
+        this.$.thumb2.addEventListener('mouseup', this.onMouseUp.bind(this));
+        this.addEventListener('mouseleave', this.onMouseUp.bind(this));
+      }
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,21 @@
+{
+  "name": "range",
+  "description": "",
+  "main": "inde.html",
+  "authors": [
+    "Akshay V R"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.7.1"
+  }
+}

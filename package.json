@@ -1,0 +1,25 @@
+{
+  "name": "polymer-range-selector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "bower-install": "bower install",
+    "startServer": "http-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rakshay/polymer-range-selector.git"
+  },
+  "author": "Akshay Valiya Rakkanchath",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rakshay/polymer-range-selector/issues"
+  },
+  "homepage": "https://github.com/Rakshay/polymer-range-selector#readme",
+  "devDependencies": {
+    "bower": "^1.8.0",
+    "http-server": "^0.9.0"
+  }
+}
