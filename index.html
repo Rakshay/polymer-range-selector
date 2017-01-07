@@ -5,6 +5,13 @@
     <link rel="import" href="elements/range-selector.html">
   </head>
   <body>
-    <range-selector ticks='[{"value": 1, "text": "Tick1"}, {"value": 2, "text": "Tick2"}, {"value": 3, "text": "Tick3"}, {"value": 4, "text": "Tick4"}]' />
+    <range-selector style="width: 500px;" ticks='[{"value": 1, "text": "Tick1"}, {"value": 2, "text": "Tick2"}, {"value": 3, "text": "Tick3"}, {"value": 4, "text": "Tick4"}]' thumb2="3" />
+
+    <script>
+      document.querySelector('range-selector').addEventListener('rangeUpdated', function (e) {
+          console.log(e.detail); // true
+      });
+      document.querySelector('range-selector').setRange({minValue: 1, maxValue: 2});
+    </script>
   </body>
 </html>
