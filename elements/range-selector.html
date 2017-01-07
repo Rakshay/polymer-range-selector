@@ -241,9 +241,44 @@
           document.onselectstart = null;
         }
       },
+      getLeftRightThumbs (thumb1, thumb2) {
+        var thumbPosition = {
+              thumb1: parseInt(thumb1.style.left.substring(0, thumb1.style.left.length - 2)),
+              thumb1Width: thumb1.getBoundingClientRect().width,
+              thumb2: parseInt(thumb2.style.left.substring(0, thumb2.style.left.length - 2)),
+              thumb2Width: thumb2.getBoundingClientRect().width,
+            },
+            leftThumb,
+            rightThumb;
+
+        if (thumbPosition.thumb1 < thumbPosition.thumb2) {
+          leftThumb = {
+            left: thumbPosition.thumb1,
+            width: thumbPosition.thumb1Width
+          };
+          rightThumb = {
+            left: thumbPosition.thumb2,
+            width: thumbPosition.thumb2Width
+          };
+        } else {
+          leftThumb = {
+            left: thumbPosition.thumb2,
+            width: thumbPosition.thumb2Width
+          };
+          rightThumb = {
+            left: thumbPosition.thumb1,
+            width: thumbPosition.thumb1Width
+          };
+        }
+
+        return {
+          leftThumb: leftThumb,
+          rightThumb: rightThumb
+        }
+      },
       moveThumb: function (left) {
         var activeTicks = {},
-            thumbPosition = {},
+            thumbPosition,
             i,
             len = this.vars.tickBounds.length,
             tick,
@@ -251,31 +286,21 @@
 
         this.vars._dragElement.style.left = left + 'px';
         this.$[this.vars._dragElement.dataset.label].style.left = left + 'px';
-        this.$['inactive-track-left'].style.width = this.$.thumb1.style.left;
-        this.$['inactive-track-right'].style.left = this.$.thumb2.style.left;
+
+        thumbPosition = this.getLeftRightThumbs(this.$.thumb1, this.$.thumb2)
+
+        this.$['inactive-track-left'].style.width = thumbPosition.leftThumb.left + 'px';
+        this.$['inactive-track-right'].style.left = (thumbPosition.rightThumb.left + (thumbPosition.rightThumb.width / 2)) + 'px';
 
         activeTicks = {
           left: 0,
           right: this.ticks.length - 1
         };
-        thumbPosition = {
-          thumb1: this.$.thumb1.style.left,
-          thumb1Width: this.$.thumb1.getBoundingClientRect().width,
-          thumb2: this.$.thumb2.style.left,
-          thumb2Width: this.$.thumb2.getBoundingClientRect().width,
-        };
-
-        thumbPosition.thumb1 = parseInt(thumbPosition.thumb1.substring(0, thumbPosition.thumb1.length - 2));
-        thumbPosition.thumb2 = parseInt(thumbPosition.thumb2.substring(0, thumbPosition.thumb2.length - 2)) + thumbPosition.thumb2Width;
 
         for (i = 0; i < len; i++) {
           tickBound = this.vars.tickBounds[i];
 
-          console.log(i);
-          console.log(tickBound);
-          console.log(thumbPosition);
-
-          if (tickBound.left > thumbPosition.thumb1 && tickBound.left < thumbPosition.thumb2) {
+          if (tickBound.left > thumbPosition.leftThumb.left && tickBound.left < (thumbPosition.rightThumb.left  + thumbPosition.rightThumb.width)) {
             if (this.$.ticks.querySelector('#tick' + i) !== null) {
               this.$.ticks.querySelector('#tick' + i).classList.remove('inactive-tick');
               this.$.ticks.querySelector('#tick' + i).classList.add('active');
