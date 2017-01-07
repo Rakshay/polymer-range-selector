@@ -352,12 +352,14 @@
         thumb2Selection = (thumb2Selection == null || isNaN(thumb2Selection) ? (this.vars.tickBounds.length - 1) : thumb2Selection);
 
         this.vars._dragElement = this.$.thumb1;
-        this.moveThumb(this.vars.tickBounds[thumb1Selection].left - 18);
-        this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb1Selection].text;
+        if (this.vars.tickBounds[thumb1Selection] !== undefined) {
+          this.moveThumb(this.vars.tickBounds[thumb1Selection].left - 18);
+          this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb1Selection].text;
 
-        this.vars._dragElement = this.$.thumb2;
-        this.moveThumb(this.vars.tickBounds[thumb2Selection].left - 18);
-        this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb2Selection].text;
+          this.vars._dragElement = this.$.thumb2;
+          this.moveThumb(this.vars.tickBounds[thumb2Selection].left - 18);
+          this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb2Selection].text;
+        }
 
         this.vars._dragElement = null;
       },
