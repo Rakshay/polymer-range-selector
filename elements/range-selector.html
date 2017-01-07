@@ -333,6 +333,8 @@
         this.vars._dragElement = this.$.thumb2;
         this.moveThumb(this.vars.tickBounds[thumb2Selection].left - 18);
         this.$[this.vars._dragElement.dataset.label].innerText = this.ticks[thumb2Selection].text;
+
+        this.vars._dragElement = null;
       },
       setRange: function (value) {
         var minValue = parseInt(value.minValue),
