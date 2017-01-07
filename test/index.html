@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>polymer-range-selector test</title>
+
+    <!--<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>-->
+    <script src="../bower_components/web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../elements/range-selector.html">
+  </head>
+  <body>
+    <test-fixture id="range">
+      <template>
+        <range-selector />
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('polytest-element', function() {
+        test('instantiating the element works', function() {
+          var element = fixture('range');
+          assert.equal(element.is, 'range-selector');
+        });
+      });
+    </script>
+  </body>
+</html>
